@@ -84,6 +84,7 @@ GitHub地址：[https://github.com/alibaba/pont](https://github.com/alibaba/pont
 - 自动生成接口封装代码
 - 自动生成接口数据的基类
 - 自动生成接口代码注释
+- yarn apis 自动输出文件
 
 <a name="QE7no"></a>
 ## 那开始吧
@@ -92,6 +93,7 @@ GitHub地址：[https://github.com/alibaba/pont](https://github.com/alibaba/pont
 1. 在项目的根目录创建一个 `pont-config.json`文件
 1. 创建一个目录 `pontConfig` 
 1. 创建两个文件到 `pontTemplate.ts` `transformPath.ts` 到  `pontConfig` 
+1. 全局安装 pont-engine
 
 <a name="mwJ5l"></a>
 ### 初始配置文件
@@ -576,4 +578,46 @@ getBaseClassesIndex() {}
 ```
 
 
+<a name="DC9dr"></a>
+## 实践一下
 
+在 package.json 中 添加一个 script 
+
+```json
+'script': {
+   'apis': 'pont generate'
+}
+```
+
+yarn apis -> pont 会根据我们配置的信息自动生成 api 下资源文件
+```
+src
+├─api             #api文件夹
+│  ├─mods            #模块
+│  │  ├─common          #公共
+│  │  ├─user            #用户
+│  │  └─index.ts        #集合所有接口
+|  ├─baseClass.ts    #基类
+|  ├─api.d.ts        #接口声明文件
+│  └─index.ts        #集合导出基类&模块&声明
+```
+
+在 vue 中按需引用接口 如下示例:
+
+```typescript
+// user.vue
+import { userVo } from '@/api/baseClass'
+import { getDetail } from '@/api/mods/user'
+
+const userInfo = reactive(new userVo())
+
+function getUserDetail(id: number) {
+  getDetail({ id })
+    .then(res => {
+        userInfo = res.data
+    })
+    .catch(error => {
+      Message.error(error.msg)
+    })
+}
+```
