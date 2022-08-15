@@ -90,10 +90,10 @@ GitHub地址：[https://github.com/alibaba/pont](https://github.com/alibaba/pont
 ## 那开始吧
 
 1. 找一个 swagger 接口文档 ，注意 pont 只支持 swagger 2 以上的版本
-1. 在项目的根目录创建一个 `pont-config.json`文件
-1. 创建一个目录 `pontConfig` 
-1. 创建两个文件到 `pontTemplate.ts` `transformPath.ts` 到  `pontConfig` 
-1. 全局安装 pont-engine
+2. 在项目的根目录创建一个 `pont-config.json`文件
+3. 创建一个目录 `pontConfig` 
+4. 创建两个文件到 `pontTemplate.ts` `transformPath.ts` 到  `pontConfig` 
+5. 全局安装 pont-engine
 
 <a name="mwJ5l"></a>
 ### 初始配置文件
