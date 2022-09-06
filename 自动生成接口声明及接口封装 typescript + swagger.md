@@ -239,6 +239,12 @@ export default class MyGenerator extends CodeGenerator {
   getModsIndex(): string
   /** 获取接口类和基类的总的 index 入口文件代码 */
   getIndex(): string
+
+  /* 接口方法声明 */
+  /** 获取模块的类型定义代码，一个 namespace ，一般不需要覆盖 */
+  getModsDeclaration():string
+  /** 获取接口内容的类型定义代码 */
+  getInterfaceContentInDeclaration(inter: Interface):string
 }
 
 ```
@@ -265,7 +271,7 @@ inter.response // 描述接口的响应类型
 inter.path // 接口路径
 
 // 取到接口生成的 返回值 view model
-const resultVo = formatResultVo(inter.response)
+// const resultVo = formatResultVo(inter.response)
 // 格式化后获取到 请求封装的入参
 const paramsCodeString = formatParameter(...)
 // 将 paramsCode 转为接口注释
@@ -273,7 +279,7 @@ const getParamsNoteList = getParamsNote(paramsCode)
 
 // 类似这样的拼装即完成了接口的自定义封装
 export function ${inter.name}(${paramsCodeString}) {
-  return ${method}<${resultVo}, ${bodyParamsCode}>(
+  return ${method}<${inter.responseType}, ${bodyParamsCode}>(
     ${host}${inter.path}(data, config)
   )
 }
@@ -312,6 +318,17 @@ export { defs, mods }
 
 这里主要是处理 baseclass 中 number 类型的兼容（踩坑记录第二条）
 
+
+6. 接口方法声明
+
+如果想要将所有接口和 baseclass 挂载到window上全局引用，避免一些 import 的麻烦，可以通过生成接接口声明文件，添加代码提示功能。
+```typescript
+  /** 获取模块的类型定义代码，一个 namespace ，一般不需要覆盖 */
+  getModsDeclaration():string
+  /** 获取接口内容的类型定义代码 */
+  getInterfaceContentInDeclaration(inter: Interface):string
+```
+
 下面请看接口的完整实现代码
 
 ```typescript
@@ -339,7 +356,7 @@ export default class MyGenerator extends CodeGenerator {
     const paramsCodeString = formatParameter(method, hasGetParams, interfaceName, bodyParamsCode)
 
     // 取到接口生成的 返回值 view model
-    const resultVo = formatResultVo(inter.response)
+    // inter.responseType 替代 const resultVo = formatResultVo(inter.response)
 
     // 根据入参定义传参的格式（封装好的 get post 请求）
     let totalParams = ''
@@ -366,7 +383,7 @@ export default class MyGenerator extends CodeGenerator {
 
     ${note}
     export function ${inter.name}(${paramsCodeString}) {
-      return ${method}<${resultVo}, ${bodyParamsCode || (hasGetParams ? interfaceName : 'any')}>(
+      return ${method}<${inter.responseType}, ${bodyParamsCode || (hasGetParams ? interfaceName : 'any')}>(
         ${host}${inter.path}${po}${totalParams}
       )
     }
@@ -484,6 +501,58 @@ export default class MyGenerator extends CodeGenerator {
 
     return conclusion
   }
+
+  /** 获取模块的类型定义代码，一个 namespace ，一般不需要覆盖 */
+  getModsDeclaration() {
+    const mods = this.dataSource.mods
+    const content = `namespace ${this.dataSource.name || 'API'} {
+        ${mods
+          .map(
+            (mod: Mod) => `
+            /**
+             * ${mod.description}
+             */
+            export namespace ${reviseModName(mod.name)} {
+              ${mod.interfaces
+                .map((inter: Interface) => {
+                  return `
+                  /**
+                    * ${inter.method} ${inter.description}
+                    * ${inter.path}
+                    */
+                  ${this.getInterfaceContentInDeclaration(inter)}
+                `
+                })
+                .join('\n')}
+            }`
+          )
+          .join('\n\n')}
+      }
+    `
+    return content
+  }
+
+  /** 获取接口内容的类型定义代码 */
+  getInterfaceContentInDeclaration(inter: Interface) {
+    // 定义参数接口类型名称
+    const interfaceName = `${inter.name}Params`
+    // 获取 get 请求，接口声明的内容字段 -> 指定接口名称 生成代码块
+    const paramsCode = inter.getParamsCode(interfaceName)
+    // 获取 post 请求，入参的实体 -> 代码块
+    const bodyParamsCode = inter.getBodyParamsCode()
+    // 请求方法
+    const method = inter.method.toLowerCase() as MethodType
+    // 判断接口是否需要请求参数
+    const hasGetParams = !paramsCode.replace(/\n| /g, '').includes('{}')
+    // 格式化后获取到 请求封装的入参
+    const paramsCodeString = formatParameter(method, hasGetParams, interfaceName, bodyParamsCode)
+    // 将 class 定义 转为接口声明（属于强迫症行为）
+    const funcParams = paramsCode.replace(/class /, `interface `)
+    return `
+      ${hasGetParams ? funcParams : ''}
+      export function ${inter.name}(${paramsCodeString}): Promise<${inter.responseType}>;
+    `
+  }
 }
 ```
 
@@ -509,6 +578,7 @@ export class FileStructures extends Pont.FileStructures {
   getModsDeclaration(originCode: string, usingMultipleOrigins: boolean) {
     // 由于我们不使用 pont 的 request模板，所以这里我们只需要导出接口的定义
     // API 的定义声明，这里不需要所以返回空
+    // 如果需要 把这个方法整个注释即可 getModsDeclaration
     if (usingMultipleOrigins) {
       return ''
     } else {
