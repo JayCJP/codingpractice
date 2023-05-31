@@ -64,7 +64,7 @@ function selectionSort(arr) {
 console.log(selectionSort(generateTestCase()));
 
 // 3.插入排序
-// 生成一个插入排序带注释的函数并介绍函数的时间复杂度空间复杂度
+// 插入排序的原理是 将数组中的所有元素依次与前面已排好序的元素相比较，然后插入到合适的位置
 function insertionSort(arr) {
   // 3.1.外层循环，表示要插入多少个数
   for (let i = 1; i < arr.length; i++) {
@@ -85,10 +85,10 @@ function insertionSort(arr) {
   // 3.8.返回排序后的数组
   return arr;
 }
-console.log(insertionSort(generateTestCase()));
+console.log(insertionSort([20, 60, 38, 63, 66]));
 
 // 4.希尔排序
-// 生成一个希尔排序带注释的函数并介绍函数的时间复杂度空间复杂度
+// 哈希排序的原来是 将数组按照一定的间隔分为多个子数组，然后对每个子数组进行插入排序，间隔会依次缩小，直到为1
 function shellSort(arr) {
   // 4.1.定义一个变量，用来保存间隔的值
   let gap = Math.floor(arr.length / 2);
@@ -117,7 +117,6 @@ function shellSort(arr) {
   return arr;
 }
 console.log(shellSort(generateTestCase()));
-
 
 // 5.归并排序
 // 6.快速排序
@@ -162,4 +161,5 @@ console.log(shellSort(generateTestCase()));
 // 53.线段树
 // 54.树状数组
 // 55.布隆过滤器
+
 
