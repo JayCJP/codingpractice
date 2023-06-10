@@ -1,7 +1,7 @@
 // 生成一个测试用例的函数返回一个整型数组
 function generateTestCase() {
   const arr = [];
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 8; i++) {
     arr.push(Math.floor(Math.random() * 100));
   }
   return arr;
@@ -85,10 +85,10 @@ function insertionSort(arr) {
   // 3.8.返回排序后的数组
   return arr;
 }
-console.log(insertionSort([20, 60, 38, 63, 66]));
+console.log(insertionSort(generateTestCase()));
 
 // 4.希尔排序
-// 哈希排序的原来是 将数组按照一定的间隔分为多个子数组，然后对每个子数组进行插入排序，间隔会依次缩小，直到为1
+// 哈希排序的原理是 将数组按照一定的间隔分为多个子数组，然后对每个子数组进行插入排序，间隔会依次缩小，直到为1
 function shellSort(arr) {
   // 4.1.定义一个变量，用来保存间隔的值
   let gap = Math.floor(arr.length / 2);
@@ -119,6 +119,39 @@ function shellSort(arr) {
 console.log(shellSort(generateTestCase()));
 
 // 5.归并排序
+// 归并排序的原理是 将数组从中间分成前后两部分，然后对前后两部分分别进行排序，再将排好序的两部分合并在一起
+function mergeSort(arr) {
+  // 5.1.判断数组的长度是否为1
+  if (arr.length === 1) {
+    // 5.2.如果是，直接返回
+    return arr;
+  }
+  // 5.3.定义一个变量，用来保存数组长度的一半
+  const mid = Math.floor(arr.length / 2);
+  // 5.4.定义变量，用来保存左边的数组
+  const left = arr.slice(0, mid);
+  // 5.5.定义变量，用来保存右边的数组
+  const right = arr.slice(mid);
+  // 5.6.递归分别对左右两边的数组进行排序
+  return merge(mergeSort(left), mergeSort(right));
+}
+// 5.7.定义一个函数，用来合并两个有序数组
+function merge(left, right) {
+  // 5.8.定义一个变量，用来保存合并后的数组
+  let result = [];
+  // 5.9.定义两个变量，分别表示左右两个数组的索引
+  let i = 0;
+  let j = 0;
+  // 5.10.比较两个数组的元素，将较小的元素添加到结果数组中
+  while (i < left.length && j < right.length) {
+    result.push(left[i] < right[j] ? left[i++] : right[j++]);
+  }
+  // 5.11.将剩余的元素添加到结果数组中
+  return result.concat(i < left.length ? left.slice(i) : right.slice(j));
+}
+console.log(mergeSort(generateTestCase()));
+
+
 // 6.快速排序
 // 7.堆排序
 // 8.计数排序
@@ -161,5 +194,4 @@ console.log(shellSort(generateTestCase()));
 // 53.线段树
 // 54.树状数组
 // 55.布隆过滤器
-
 
